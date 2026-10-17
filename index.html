@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0a0b0e">
+<title>CUBE X — 3D Rubik's Cube</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0b0e'/%3E%3Cg%3E%3Crect x='4' y='4' width='7' height='7' rx='1.4' fill='%23f4f4f4'/%3E%3Crect x='12.5' y='4' width='7' height='7' rx='1.4' fill='%23d62828'/%3E%3Crect x='21' y='4' width='7' height='7' rx='1.4' fill='%230fa958'/%3E%3Crect x='4' y='12.5' width='7' height='7' rx='1.4' fill='%23ffd60a'/%3E%3Crect x='12.5' y='12.5' width='7' height='7' rx='1.4' fill='%231565d8'/%3E%3Crect x='21' y='12.5' width='7' height='7' rx='1.4' fill='%23ff7a00'/%3E%3Crect x='4' y='21' width='7' height='7' rx='1.4' fill='%23d62828'/%3E%3Crect x='12.5' y='21' width='7' height='7' rx='1.4' fill='%23f4f4f4'/%3E%3Crect x='21' y='21' width='7' height='7' rx='1.4' fill='%23ffd60a'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="bgfx"><i></i><i></i><i></i></div>
+<div id="load"><div class="lw"><div class="ltop"><span class="logo big"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><div class="word big">CUBE<b>X</b></div></div><div class="lbot"><div class="lstat" id="loadmsg" role="status">INITIALIZING CUBE X</div><div class="lbar"><span id="lbar"></span></div><small id="lpct">0%</small><button id="skip" class="ghost">Skip</button></div></div></div>
+
+<div id="app">
+<header>
+  <div class="brand"><span class="logo"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><div class="word">CUBE<b>X</b></div></div>
+  <div class="hr"><span class="pill" id="modeLbl"></span><span class="pill" id="sizeLbl">3×3×3</span><button id="homeBtn" class="ib" aria-label="Back to main menu" title="Main menu">✕</button><button id="menuBtn" class="ib" aria-label="Open menu" aria-expanded="false" aria-controls="menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></div>
+</header>
+
+<main id="stage">
+  <canvas id="gl" aria-label="Interactive 3D Rubik's Cube. Drag a sticker to turn a layer, drag the background to rotate the view."></canvas>
+  <div class="hud"><div class="hp"><small>PLAYER</small><b id="pn"></b></div><div><small>MOVES</small><b id="mv">0</b></div><div><small>TIME</small><b id="tm">0:00</b></div></div>
+  <div class="side">
+    <button id="zin" class="ib" aria-label="Zoom in" title="Zoom in">+</button>
+    <button id="zout" class="ib" aria-label="Zoom out" title="Zoom out">−</button>
+    <button id="vreset" class="ib" aria-label="Reset view" title="Reset view"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></button>
+  </div>
+  <div id="ai" role="status" aria-live="polite"><div class="aih"><span class="dot"></span><b>Being worked on by AI</b><button id="stop">Stop</button></div><div class="pbar"><span id="aib"></span></div><small id="aic">Preparing…</small></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+</main>
+
+<section id="dock" aria-label="Move controls">
+  <div class="opts">
+    <button id="half" aria-pressed="false" title="Half-turn mode (R2, U2 …)">½ turn</button>
+    <div class="lay"><button id="dm" class="ib" aria-label="Shallower layer">−</button><span>Layer <b id="dp">1</b></span><button id="dpl" class="ib" aria-label="Deeper layer">+</button><button id="wide" aria-pressed="false" title="Turn all layers from the outside down to this depth (Rw, 3Rw …)">Wide</button></div>
+  </div>
+  <div class="faces" id="faces"></div>
+  <div class="acts"><button id="undo" title="Undo (Ctrl+Z)">Undo</button><button id="redo" title="Redo (Ctrl+Y)">Redo</button><button id="shuf" title="Shuffle">Shuffle</button><button id="solve" class="pri" title="Solve by reversing your recorded moves">AI Solve</button></div>
+</section>
+</div>
+
+<div id="ux">
+<section class="scr" id="s-reg"><div class="glass pad reg"><small class="eyebrow">WELCOME TO</small><div class="word big">CUBE<b>X</b></div><h1>Choose your player identity</h1><input id="nm" type="text" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Player name" aria-label="Player name"><small id="nerr" class="errl" role="alert"></small><button id="nok" class="pri">Continue</button><small class="hint">2–16 characters · letters, numbers, space, _ . -</small></div></section>
+<section class="scr" id="s-home"><div class="top"><span class="logo big"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><div class="word big">CUBE<b>X</b></div><small class="eyebrow">LIQUID GLASS RUBIK EXPERIENCE</small></div>
+<nav class="stack"><button class="gbtn main" data-go="modes"><b>PLAY</b><small>Pick a mode and start</small></button><button class="gbtn" data-go="set"><b>SETTING</b><small>Graphics, cube, audio, interface</small></button><button class="gbtn" data-go="cred"><b>CREDIT</b><small>The creator behind CUBE X</small></button><button class="gbtn sm" data-go="stats"><b>STATISTICS</b></button><p class="who">Player · <b id="whoami"></b></p></nav></section>
+<section class="scr panel" id="s-modes"><div class="sh"><h1>SELECT MODE</h1><button class="x" data-go="home" aria-label="Back to main menu">✕</button></div><div class="cards">
+<button class="card gbtn" data-mode="training"><i>◐</i><b>TRAINING</b><small>Free practice on a fresh scramble with Undo, Redo and AI Solve.</small></button>
+<button class="card gbtn" data-mode="speed"><i>⏱</i><b>SPEEDRUN</b><small>New scramble. The timer starts on your first move and stops the instant the cube is truly solved.</small></button>
+<button class="card gbtn" data-mode="daily"><i>☀</i><b>DAILY CHALLENGE</b><small>Everyone gets the same scramble today for a given size. Beat your own time.</small></button>
+<button class="card gbtn" data-mode="explorer"><i>✦</i><b>CUBE EXPLORER</b><small>No scramble, no clock. Turn, rotate, and try every size and view.</small></button>
+<button class="card gbtn" disabled><i>⚔</i><b>VS AI</b><small>In development — it needs a second cube and a real solver. Not playable yet.</small></button></div></section>
+<section class="scr panel" id="s-cred"><div class="sh"><h1>CREDIT</h1><button class="x" data-go="home" aria-label="Back to main menu">✕</button></div><div class="glass pad cred"><span class="logo big"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small class="eyebrow">CREATED BY</small><div class="nm" id="crname" aria-label="RUbixoWH1"></div>
+<p>CUBE X is a digital Rubik’s Cube experience built around precision, logic and play. Every turn you make moves real pieces through a real cube model — the same state that the timer, the solver and the final verification read from, with no shortcuts.</p>
+<p>It treats the classic puzzle as a discipline: scramble, observe, plan, execute. Speed matters, but so does clarity — a clean view, honest timing, and a cube that always obeys the rules.</p>
+<p>CUBE X is where technology meets the puzzle that has challenged minds for decades: a space to practise, to chase your own best time, and to explore what a cube can do.</p><small class="hint">CUBE X 2.0 · Liquid Glass · Three.js r128</small></div></section>
+<section class="scr panel" id="s-stats"><div class="sh"><h1>STATISTICS</h1><button class="x" data-go="home" aria-label="Back to main menu">✕</button></div><div class="glass pad cred"><div id="statbox"></div><small class="hint">Stored on this device only. There is no online leaderboard connected yet.</small></div></section>
+<section class="scr panel" id="s-set"><div class="sh"><h1>SETTING</h1><button class="x" data-go="home" aria-label="Back to main menu">✕</button></div><div id="setbox" class="cards one"><div class="glass pad sc" id="dcard"><h2>Data &amp; privacy</h2><div class="row"><span>Player name</span><div class="nr"><input id="nm2" type="text" maxlength="16" autocomplete="off" spellcheck="false" aria-label="Player name"><button id="nsave" class="pri">Save</button></div><small id="nerr2" class="errl"></small></div><div class="grid2"><button id="rstats">Reset statistics</button><button id="rall" class="danger">Reset all local data</button></div></div></div></section>
+</div>
+<div id="mdl" hidden><div class="glass pad md" role="dialog" aria-modal="true"><h3 id="mdlT"></h3><p id="mdlP"></p><div id="mdlB" class="mbtn"></div></div></div>
+
+<div id="scrim"></div>
+<aside id="menu" aria-label="Menu" inert>
+  <div class="mh"><div class="word">CUBE<b>X</b></div><button id="close" class="ib" aria-label="Close menu">✕</button></div>
+  <div class="mb">
+    <h2>Puzzle</h2>
+    <div class="seg" id="sizes" role="group" aria-label="Cube size"><button data-v="2">2×2</button><button data-v="3">3×3</button><button data-v="6">6×6</button><button data-v="8">8×8</button></div>
+    <label class="row">Shuffle length<div class="seg" id="shufs" role="group"><button data-v="10">Short</button><button data-v="25">Normal</button><button data-v="50">Long</button></div></label>
+    <div class="grid2"><button id="reset">Reset cube</button><button id="fs">Fullscreen</button></div>
+    <details><summary>Move history</summary><div id="hist" class="hist">No moves yet.</div></details>
+
+    <h2>View</h2>
+    <div class="seg six" id="views" role="group" aria-label="Camera views"><button data-v="F">Front</button><button data-v="B">Back</button><button data-v="L">Left</button><button data-v="R">Right</button><button data-v="U">Top</button><button data-v="D">Bottom</button></div>
+    <label class="row sw">Auto-rotate<input type="checkbox" id="auto"></label>
+
+    <h2>Appearance</h2>
+    <div class="seg" id="themes" role="group" aria-label="Background theme"><button data-v="graphite">Graphite</button><button data-v="midnight">Midnight</button><button data-v="ember">Ember</button></div>
+    <div class="img">
+      <label class="file">Choose image (PNG, JPEG, WebP)<input type="file" id="file" accept="image/png,image/jpeg,image/webp"></label>
+      <div class="imgrow"><canvas id="prev" width="160" height="160" aria-label="Image preview"></canvas>
+        <div><small>Apply to</small><div class="seg six" id="imgf" role="group"><button data-v="ALL">All</button><button data-v="F">F</button><button data-v="R">R</button><button data-v="L">L</button><button data-v="U">U</button><button data-v="D">D</button><button data-v="B">B</button></div>
+        <small>Fit</small><div class="seg" id="fit" role="group"><button data-v="cover">Cover</button><button data-v="contain">Contain</button><button data-v="stretch">Stretch</button><button data-v="center">Center</button></div></div></div>
+      <div class="grid2"><button id="apply" class="pri" disabled>Apply image</button><button id="rm">Remove image</button></div>
+    </div>
+
+    <h2>Controls</h2>
+    <label class="row">Animation speed<input type="range" id="speed" min=".5" max="2.5" step=".1"></label>
+    <label class="row">Drag sensitivity<input type="range" id="sens" min=".5" max="2" step=".1"></label>
+    <label class="row">Camera smoothness<input type="range" id="damp" min=".04" max=".3" step=".01"></label>
+
+    <h2>Application</h2>
+    <label class="row sw">Sound effects<input type="checkbox" id="snd"></label>
+    <label class="row sw">Haptics<input type="checkbox" id="hap"></label>
+    <label class="row">Graphics quality<div class="seg" id="qual" role="group"><button data-v="0">Performance</button><button data-v="1">Balanced</button><button data-v="2">High</button></div></label>
+
+    <h2>Help &amp; About</h2>
+    <p class="note"><b>Turn a layer:</b> drag across a sticker. <b>Rotate view:</b> drag the background (or a sticker diagonally). <b>Zoom:</b> wheel or pinch.<br><b>Keys:</b> R L U D F B (Shift = counter-clockwise), Ctrl+Z / Ctrl+Y.<br><b>Big cubes:</b> use Layer ± to pick the slice, Wide for Rw / 3Rw.</p>
+    <p class="note"><b>About AI Solve:</b> it is not a remote AI. It reverses your recorded moves with a verified check at the end, so it solves cubes scrambled inside CUBE X (any size). CUBE X v1 · Three.js r128 (cdnjs).</p>
+  </div>
+</aside>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
